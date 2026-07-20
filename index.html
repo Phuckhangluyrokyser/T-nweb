@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>kysertweaks | Hacker Space</title>
+    <style>
+        /* ===== RESET ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            background: #0a0a0a;
+            color: #00ffcc;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+        body {
+            overflow-y: auto !important;
+            position: relative;
+        }
+
+        /* ===== MATRIX RAIN FULL ===== */
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            opacity: 0.25;
+            pointer-events: none;
+        }
+
+        /* ===== SPLASH SCREEN ===== */
+        #splashScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1000;
+            background: #0a0a0a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            overflow: hidden;
+        }
+        #splashScreen.hide {
+            opacity: 0;
+            transform: scale(1.05);
+            pointer-events: none;
+            visibility: hidden;
+        }
+
+        .splash-content {
+            text-align: center;
+            padding: 40px;
+            max-width: 500px;
+            animation: fadeInUp 1s ease;
+        }
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .splash-title {
+            font-size: 3.5rem;
+            color: #00ffcc;
+            text-shadow: 0 0 30px #00ffcc66, 0 0 60px #00ffcc33;
+            letter-spacing: 6px;
+            margin-bottom: 8px;
+            animation: glowPulse 2s infinite alternate;
+        }
+        @keyframes glowPulse {
+            0% { text-shadow: 0 0 20px #00ffcc44, 0 0 40px #00ffcc22; }
+            100% { text-shadow: 0 0 40px #00ffccff, 0 0 80px #00ffcc66; }
+        }
+
+        .splash-sub {
+            font-size: 1rem;
+            color: #88ffdd;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+        }
+
+        .splash-icon {
+            font-size: 4rem;
+            margin: 10px 0 20px;
+            animation: wave 2s infinite;
+        }
+        @keyframes wave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(15deg); }
+            75% { transform: rotate(-10deg); }
+        }
+
+        .splash-desc {
+            font-size: 0.9rem;
+            color: #88aacc;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+        .splash-desc span {
+            color: #00ffcc;
+            font-weight: bold;
+        }
+
+        /* ===== NÚT OK ===== */
+        .btn-ok {
+            background: transparent;
+            border: 2px solid #00ffcc;
+            color: #00ffcc;
+            padding: 16px 60px;
+            font-size: 1.3rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            letter-spacing: 4px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+        }
+        .btn-ok::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, #00ffcc33, transparent);
+            transition: 0.6s;
+        }
+        .btn-ok:hover::before {
+            left: 100%;
+        }
+        .btn-ok:hover {
+            background: #00ffcc22;
+            box-shadow: 0 0 40px #00ffcc44, inset 0 0 40px #00ffcc22;
+            transform: scale(1.05);
+        }
+        .btn-ok:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        #mainContent {
+            position: relative;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 1s ease;
+            display: none;
+            min-height: 100vh;
+            padding: 30px 20px;
+            overflow-y: visible !important;
+        }
+        #mainContent.show {
+            display: flex !important;
+            opacity: 1 !important;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 820px;
+            width: 100%;
+            border: 1px solid #00ffcc55;
+            padding: 45px 40px;
+            border-radius: 16px;
+            background: #0a0a0acc;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 80px #00ffcc15, inset 0 0 80px #00ffcc08;
+            animation: fadeIn 1s ease;
+            margin: 20px 0;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: scale(0.95) rotate(-1deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0); }
+        }
+
+        .glitch {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #00ffcc;
+            text-shadow: 0 0 15px #00ffcc88, 0 0 40px #00ffcc44;
+            letter-spacing: 6px;
+            animation: glowPulse 2.5s infinite alternate;
+            position: relative;
+            display: inline-block;
+        }
+        .glitch::before,
+        .glitch::after {
+            content: 'kysertweaks';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.6;
+        }
+        .glitch::before {
+            color: #ff00aa;
+            z-index: -1;
+            animation: glitchShift 0.3s infinite alternate;
+        }
+        .glitch::after {
+            color: #00ffff;
+            z-index: -1;
+            animation: glitchShift2 0.4s infinite alternate;
+        }
+        @keyframes glitchShift {
+            0% { transform: translate(-3px, 2px); }
+            100% { transform: translate(3px, -2px); }
+        }
+        @keyframes glitchShift2 {
+            0% { transform: translate(2px, -3px); }
+            100% { transform: translate(-2px, 3px); }
+        }
+
+        .sub {
+            font-size: 1.1rem;
+            color: #88ffdd;
+            margin: 8px 0 18px;
+            word-break: break-all;
+            letter-spacing: 2px;
+        }
+
+        .tag {
+            font-size: 0.8rem;
+            color: #ffaa33;
+            background: #ffaa3315;
+            padding: 6px 20px;
+            border-radius: 30px;
+            display: inline-block;
+            border: 1px solid #ffaa3344;
+            margin: 6px 0 20px;
+            letter-spacing: 3px;
+            animation: tagPulse 3s infinite;
+        }
+        @keyframes tagPulse {
+            0%, 100% { border-color: #ffaa3344; }
+            50% { border-color: #ffaa33aa; }
+        }
+
+        .divider {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ffcc77, transparent);
+            margin: 30px 0;
+        }
+
+        .greeting {
+            font-size: 1.8rem;
+            color: #ffffff;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-align: left;
+            margin-bottom: 8px;
+        }
+        .greeting span {
+            color: #00ffcc;
+            animation: wave 2s infinite;
+            display: inline-block;
+        }
+
+        .intro-text {
+            font-size: 1.05rem;
+            line-height: 2;
+            color: #ccffee;
+            text-align: left;
+        }
+        .intro-text i {
+            color: #ffaa33;
+            font-style: normal;
+            font-weight: bold;
+            text-shadow: 0 0 20px #ffaa3344;
+        }
+        .intro-text .highlight {
+            color: #00ffcc;
+            font-weight: bold;
+            text-shadow: 0 0 20px #00ffcc44;
+        }
+        .intro-text .highlight2 {
+            color: #ff66aa;
+            font-weight: bold;
+        }
+
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 18px 0 10px;
+            justify-content: center;
+        }
+        .skill-badge {
+            background: #00ffcc11;
+            border: 1px solid #00ffcc33;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #00ffcc;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            cursor: default;
+        }
+        .skill-badge:hover {
+            background: #00ffcc22;
+            border-color: #00ffcc;
+            box-shadow: 0 0 20px #00ffcc33;
+            transform: scale(1.05);
+        }
+
+        .quote {
+            font-size: 1.2rem;
+            color: #ffffff;
+            background: #00ffcc0c;
+            padding: 18px 24px;
+            border-radius: 10px;
+            border-left: 4px solid #00ffcc;
+            margin: 22px 0 20px;
+            font-style: italic;
+            text-align: left;
+            letter-spacing: 0.5px;
+            position: relative;
+        }
+        .quote::before {
+            content: '"';
+            font-size: 3rem;
+            color: #00ffcc44;
+            position: absolute;
+            top: -10px;
+            left: 8px;
+        }
+
+        .contact {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 20px;
+            background: #00ffcc08;
+            border: 1px solid #00ffcc22;
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin: 18px 0 8px;
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #aaddff;
+            transition: 0.3s;
+            cursor: pointer;
+            padding: 4px 0;
+        }
+        .contact-item:hover {
+            color: #00ffcc;
+            transform: translateX(4px);
+        }
+        .contact-item .icon {
+            font-size: 1.2rem;
+            width: 28px;
+            text-align: center;
+        }
+        .contact-item .label {
+            color: #668899;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+        }
+        .contact-item .value {
+            color: #00ffcc;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .contact-item a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 18px 0 8px;
+            padding: 14px 0;
+            border-top: 1px solid #00ffcc11;
+            border-bottom: 1px solid #00ffcc11;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .stat-item {
+            text-align: center;
+            min-width: 80px;
+        }
+        .stat-item .number {
+            font-size: 1.4rem;
+            color: #00ffcc;
+            font-weight: bold;
+        }
+        .stat-item .desc {
+            font-size: 0.65rem;
+            color: #668899;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        .footer {
+            margin-top: 25px;
+            font-size: 0.85rem;
+            color: #446688;
+            letter-spacing: 1.5px;
+            text-align: left;
+            border-top: 1px solid #00ffcc22;
+            padding-top: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .footer .cmd {
+            color: #00ffcc;
+        }
+        .footer .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background: #00ffcc;
+            animation: blink 1s step-end infinite;
+            vertical-align: text-bottom;
+            margin-left: 4px;
+        }
+        .footer .uptime {
+            font-size: 0.7rem;
+            color: #446688;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        #status {
+            font-size: 0.75rem;
+            color: #668899;
+            margin-top: 14px;
+            letter-spacing: 1px;
+            text-align: left;
+        }
+
+        .music-control {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #00ffcc22;
+            border: 1px solid #00ffcc66;
+            color: #00ffcc;
+            padding: 14px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            backdrop-filter: blur(8px);
+            transition: 0.3s;
+            z-index: 999;
+            box-shadow: 0 0 30px #00ffcc22;
+        }
+        .music-control:hover {
+            background: #00ffcc44;
+            transform: scale(1.08) rotate(-5deg);
+            box-shadow: 0 0 60px #00ffcc44;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 650px) {
+            .container { padding: 28px 18px; margin: 10px 0; }
+            .glitch { font-size: 2.2rem; letter-spacing: 2px; }
+            .greeting { font-size: 1.4rem; }
+            .intro-text { font-size: 0.95rem; line-height: 1.8; }
+            .quote { font-size: 1rem; padding: 14px 16px; }
+            .contact { grid-template-columns: 1fr; gap: 8px; padding: 14px 16px; }
+            .stats { flex-direction: column; gap: 8px; align-items: center; }
+            .skills { gap: 6px; }
+            .skill-badge { font-size: 0.65rem; padding: 4px 12px; }
+            .music-control { padding: 10px 14px; font-size: 1rem; bottom: 16px; right: 16px; }
+            .footer { flex-direction: column; gap: 6px; align-items: flex-start; }
+
+            .splash-title { font-size: 2.5rem; }
+            .btn-ok { padding: 14px 40px; font-size: 1.1rem; }
+            .splash-content { padding: 20px; }
+        }
+
+        /* ===== SCROLL BAR ĐẸP ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00ffcc44;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00ffcc66;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== MATRIX RAIN ===== -->
+    <canvas id="matrixCanvas"></canvas>
+
+    <!-- ===== SPLASH SCREEN ===== -->
+    <div id="splashScreen">
+        <div class="splash-content">
+            <div class="splash-title">kysertweaks</div>
+            <div class="splash-sub">⚡ CREATOR / SYSTEM / CODE ⚡</div>
+            <div class="splash-icon">👾</div>
+            <div class="splash-desc">
+                Chào mừng đến với không gian của<br>
+                <span>Kysertweaks</span> — nơi công nghệ lên ngôi 🚀
+            </div>
+            <button class="btn-ok" id="btnOK">► OK</button>
+            <div style="margin-top: 20px; font-size: 0.7rem; color: #446688; letter-spacing: 2px;">
+                Nhấn OK để khám phá
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div id="mainContent">
+        <div class="container">
+            <div class="glitch">kysertweaks</div>
+            <div class="sub">kysertweaks.dev</div>
+            <div class="tag">⚡ CREATOR / SYSTEM / CODE ⚡</div>
+            <hr class="divider">
+            <div class="greeting">CHÀO CẬU! <span>👾</span></div>
+            <div class="intro-text">
+                Mình là <i>Kysertweaks</i> (Trần Đỗ Phúc Khang) — 
+                một <span class="highlight">kiến trúc sư công nghệ</span> 
+                với niềm đam mê bất tận dành cho <span class="highlight">code</span> 
+                và <span class="highlight2">thiết bị di động</span>.
+                <br><br>
+                Mình không chỉ sửa lỗi — mình <i>tối ưu hóa</i>, 
+                <i>tinh chỉnh</i> và <i>đánh thức</i> tiềm năng ẩn giấu 
+                trong từng chiếc điện thoại, máy tính. 
+                Biến chúng từ <span class="highlight2">công cụ</span> 
+                thành <span class="highlight">vũ khí</span> 
+                — <i>mượt mà, bền bỉ và đẳng cấp</i>.
+                <br><br>
+                Nếu bạn muốn <span class="highlight2">vén màn bí mật</span> 
+                của thiết bị mình đang dùng — tôi sẵn sàng 
+                <span class="highlight">đồng hành</span> và 
+                <i>nâng tầm trải nghiệm</i> của bạn lên một 
+                <span class="highlight">tầm cao mới</span>. 🚀
+            </div>
+
+            <div class="skills">
+                <span class="skill-badge">⚡ System Optimization</span>
+                <span class="skill-badge">🐍 Python</span>
+                <span class="skill-badge">🌐 Web Dev</span>
+                <span class="skill-badge">📱 Mobile Tweak</span>
+                <span class="skill-badge">🔧 Reverse Engineering</span>
+                <span class="skill-badge">☕ Java</span>
+                <span class="skill-badge">🛡️ Security</span>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item"><div class="number">+12</div><div class="desc">DỰ ÁN ĐÃ HOÀN THÀNH</div></div>
+                <div class="stat-item"><div class="number">+50</div><div class="desc">THIẾT BỊ TỐI ƯU</div></div>
+                <div class="stat-item"><div class="number">∞</div><div class="desc">DÒNG CODE</div></div>
+                <div class="stat-item"><div class="number">☕ 24/7</div><div class="desc">CÀ PHÊ</div></div>
+            </div>
+
+            <div class="quote">Think different. Write cleaner. Keep going.</div>
+
+            <div class="contact">
+                <div class="contact-item" onclick="copyText('0337128784')">
+                    <span class="icon">📱</span>
+                    <span><span class="label">ZALO</span><br><span class="value">0337128784</span></span>
+                </div>
+                <div class="contact-item" onclick="copyText('kysertran@gmail.com')">
+                    <span class="icon">✉️</span>
+                    <span><span class="label">EMAIL</span><br><span class="value">kysertran@gmail.com</span></span>
+                </div>
+                <div class="contact-item" onclick="window.open('https://facebook.com/KyserTrann','_blank')">
+                    <span class="icon">📘</span>
+                    <span><span class="label">FACEBOOK</span><br><span class="value">KyserTrann</span></span>
+                </div>
+                <div class="contact-item" onclick="window.open('https://github.com/kysertweaks','_blank')">
+                    <span class="icon">🐙</span>
+                    <span><span class="label">GITHUB</span><br><span class="value">kysertweaks</span></span>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div><span class="cmd">root@kysertweaks</span>:~$ ./run --optimize --now <span class="cursor"></span></div>
+                <div class="uptime">⚡ UPTIME: <span id="uptimeDisplay">00:00:00</span></div>
+            </div>
+            <div id="status">🎵 Nhạc nền đang phát ...</div>
+        </div>
+    </div>
+
+    <!-- ===== NÚT ĐIỀU KHIỂN NHẠC ===== -->
+    <button class="music-control" id="musicToggle">🔊</button>
+
+    <script>
+        // ============================================================
+        // 1. MATRIX RAIN
+        // ============================================================
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        let w, h, columns, drops, matrixChars;
+
+        function resizeCanvas() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+            columns = Math.floor(w / 18);
+            drops = new Array(columns).fill(1);
+            matrixChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$#&@%*+=<>?/';
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, w, h);
+            for (let i = 0; i < drops.length; i++) {
+                const char = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+                const x = i * 18;
+                const y = drops[i] * 18;
+                const brightness = Math.random() * 0.6 + 0.3;
+                const hue = Math.random() > 0.7 ? '180' : '160';
+                ctx.fillStyle = `hsl(${hue}, 100%, ${brightness * 100}%)`;
+                ctx.font = '16px monospace';
+                ctx.fillText(char, x, y);
+                if (y > h && Math.random() > 0.98) drops[i] = 0;
+                drops[i]++;
+            }
+            requestAnimationFrame(drawMatrix);
+        }
+        drawMatrix();
+
+        // ============================================================
+        // 2. UPTIME
+        // ============================================================
+        let startTime = Date.now();
+        setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const hh = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+            const mm = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+            const ss = String(elapsed % 60).padStart(2, '0');
+            document.getElementById('uptimeDisplay').textContent = `${hh}:${mm}:${ss}`;
+        }, 1000);
+
+        // ============================================================
+        // 3. COPY
+        // ============================================================
+        function copyText(text) {
+            const event = window.event;
+            navigator.clipboard.writeText(text).then(() => {
+                const item = event.target.closest('.contact-item');
+                if (item) { 
+                    item.style.color = '#00ffcc'; 
+                    setTimeout(() => { item.style.color = ''; }, 500);
+                }
+            }).catch(() => {
+                const input = document.createElement('input');
+                input.value = text;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+            });
+        }
+
+        // ============================================================
+        // 4. SPLASH + MUSIC
+        // ============================================================
+        const MUSIC_URL = "https://github.com/Phuckhangluyrokyser/T-nweb/raw/refs/heads/main/SaveTikTok.to_7662051440600435989.mp3";
+
+        const splash = document.getElementById('splashScreen');
+        const mainContent = document.getElementById('mainContent');
+        const btnOK = document.getElementById('btnOK');
+        const toggleBtn = document.getElementById('musicToggle');
+        const statusEl = document.getElementById('status');
+
+        const audio = new Audio(MUSIC_URL);
+        audio.loop = true;
+        audio.volume = 0.4;
+        let isPlaying = false;
+
+        function updateUI(playing) {
+            toggleBtn.textContent = playing ? '🔇' : '🔊';
+            statusEl.textContent = playing ? '🎵 Nhạc nền đang phát ...' : '⏸ Đã tạm dừng';
+        }
+
+        function playMusic() {
+            if (isPlaying) return;
+            audio.play().then(() => {
+                isPlaying = true;
+                updateUI(true);
+                console.log('🎵 Nhạc đã phát!');
+            }).catch(err => {
+                console.warn('Lỗi phát nhạc:', err);
+                statusEl.textContent = '⚠️ Nhấn nút nhạc để phát';
+            });
+        }
+
+        function toggleMusic() {
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+                updateUI(false);
+            } else {
+                playMusic();
+            }
+        }
+
+        // === XỬ LÝ NHẤN NÚT OK ===
+        btnOK.addEventListener('click', () => {
+            // Ẩn splash
+            splash.classList.add('hide');
+            
+            // Bỏ chặn scroll
+            document.body.style.overflow = 'auto';
+            document.body.style.position = 'relative';
+            document.body.style.height = 'auto';
+
+            // Hiện main content
+            mainContent.classList.add('show');
+
+            // Phát nhạc
+            setTimeout(() => {
+                playMusic();
+            }, 300);
+
+            // Cập nhật status
+            statusEl.textContent = '🎵 Nhạc nền đang phát ...';
+            
+            // Cuộn xuống từ từ
+            setTimeout(() => {
+                window.scrollTo({
+                    top: 20,
+                    behavior: 'smooth'
+                });
+            }, 500);
+        });
+
+        // Nút bật/tắt nhạc
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMusic();
+        });
+
+        // Xử lý lỗi
+        audio.addEventListener('error', () => {
+            statusEl.textContent = '❌ Không load được nhạc. Kiểm tra link.';
+            toggleBtn.style.opacity = '0.5';
+        });
+
+        // Đảm bảo body luôn có thể scroll
+        document.body.style.overflow = 'auto';
+        document.body.style.position = 'relative';
+        document.body.style.height = 'auto';
+
+        console.log('🚀 Sẵn sàng! Nhấn OK để vào.');
+    </script>
+
+</body>
+</html>
